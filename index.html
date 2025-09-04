@@ -9,16 +9,13 @@
     body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell}
     model-viewer{
       width:100%; height:90vh; background:#f5f5f7;
-      /* wygląd paska postępu */
       --progress-bar-height: 4px;
       --progress-bar-color: rgba(0,0,0,.85);
     }
-    /* Przenieś pasek postępu na górę, wycentrowany */
     model-viewer::part(progress-bar){
       position:absolute; top:8px; bottom:auto; left:50%;
       transform:translateX(-50%); width:60%;
     }
-    /* Wbudowany przycisk AR (nie dodawaj własnego slotu) */
     model-viewer::part(ar-button){
       position:absolute; right:16px; bottom:16px;
       padding:10px 14px; border-radius:12px; background:#fff; border:1px solid #ddd;
@@ -36,23 +33,51 @@
   </style>
 </head>
 <body>
-  <!-- Awaryjne „twarde” linki do AR -->
+  <!-- Hard AR links -->
   <div class="links">
-    <!-- Android (Scene Viewer, GLB) -->
-    <a href="https://arvr.google.com/scene-viewer/1.0?file=model.glb&mode=ar_preferred&title=Model">
-      Open in AR (Android)
-    </a>
-    <!-- iOS (Quick Look, USDZ) -->
-    <a rel="ar" href="model.usdz">
-      Open in AR (iOS)
-    </a>
+    <a id="ar-android" href="#">Open in AR (Android)</a>
+    <a id="ar-ios" rel="ar" href="#">Open in AR (iOS)</a>
   </div>
 
   <model-viewer
+    id="mv"
     src="model.glb"
     ios-src="model.usdz"
-  >
-    <!-- USUŃ własne sloty progress-bar / ar-button, korzystaj z wbudowanych -->
+    ar
+    ar-modes="scene-viewer webxr quick-look"
+    camera-controls
+    shadow-intensity="1">
   </model-viewer>
+
+  <script>
+    (function () {
+      // Build absolute URLs so Scene Viewer / Quick Look can fetch the model
+      const glbUrl  = new URL('model.glb',  location.href).toString();
+      const usdzUrl = new URL('model.usdz', location.href).toString();
+
+      // Update model-viewer to use absolute URLs as well (helps on iOS)
+      const mv = document.getElementById('mv');
+      mv.src = glbUrl;
+      mv.setAttribute('ios-src', usdzUrl);
+
+      // Scene Viewer HTTP URL (fallback if intent isn’t supported)
+      const sceneViewerHttp = `https://arvr.google.com/scene-viewer/1.0?file=${encodeURIComponent(glbUrl)}&mode=ar_preferred&title=${encodeURIComponent('Model')}`;
+
+      // Android intent deep link (recommended)
+      const intentUrl =
+        `intent://arvr.google.com/scene-viewer/1.0?file=${encodeURIComponent(glbUrl)}&mode=ar_preferred&title=${encodeURIComponent('Model')}` +
+        `#Intent;scheme=https;package=com.google.ar.core;action=android.intent.action.VIEW;` +
+        `S.browser_fallback_url=${encodeURIComponent(sceneViewerHttp)};end;`;
+
+      // Wire up buttons
+      const aAndroid = document.getElementById('ar-android');
+      const aIos     = document.getElementById('ar-ios');
+
+      const isAndroid = /Android/i.test(navigator.userAgent);
+
+      aAndroid.href = isAndroid ? intentUrl : sceneViewerHttp; // works on Android, decent fallback elsewhere
+      aIos.href = usdzUrl; // Quick Look needs a direct HTTPS link to the .usdz
+    })();
+  </script>
 </body>
 </html>
