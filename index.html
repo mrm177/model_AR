@@ -27,20 +27,21 @@
   </style>
 </head>
 <body>
-  <model-viewer src="model.glb"
-    ar ar-modes="scene-viewer webxr"
-    camera-controls auto-rotate poster="poster.png">
-    <!-- USUŃ ten element, jeśli go miałeś:
-    <div slot="progress-bar">Wczytywanie…</div>
-    -->
-    <!-- NIE dodawaj też własnego slot="ar-button", użyj wbudowanego -->
-  </model-viewer>
-
   <!-- Awaryjny „twardy” link do AR (zawsze działa na Androidzie) -->
   <p style="padding:12px 16px">
     <a href="https://arvr.google.com/scene-viewer/1.0?file=https://twojadomena.pl/model.glb&mode=ar_preferred&title=Model">
       Otwórz w AR (Android)
     </a>
   </p>
+
+  <model-viewer src="model.glb"
+    ar ar-modes="scene-viewer webxr"
+    camera-controls auto-rotate poster="poster.png">
+    <!-- USUŃ ten element, jeżeli go miałeś:
+    <div slot="progress-bar">Wczytywanie…</div>
+    -->
+    <!-- NIE dodawaj też własnego slot="ar-button", użyj wbudowanego -->
+  </model-viewer>
 </body>
 </html>
+
