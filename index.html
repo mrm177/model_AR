@@ -49,7 +49,7 @@
 
   <!-- Hard AR links -->
   <div class="links">
-    <a id="ar-android" href="#">Open on Android </a>
+    <a id="ar-android" href="#">Open on Android</a>
     <a id="ar-ios" rel="ar" href="#">Open on iOS</a>
   </div>
 
@@ -58,7 +58,8 @@
     src="model.glb"
     ios-src="model.usdz"
     ar
-    ar-modes="scene-viewer webxr quick-look"
+    <!-- Prefer WebXR first; Scene Viewer second; Quick Look last -->
+    ar-modes="webxr scene-viewer quick-look"
     camera-controls
     shadow-intensity="1">
   </model-viewer>
@@ -75,11 +76,16 @@
       mv.setAttribute('ios-src', usdzUrl);
 
       // Scene Viewer HTTP URL (fallback if intent isn’t supported)
-      const sceneViewerHttp = `https://arvr.google.com/scene-viewer/1.0?file=${encodeURIComponent(glbUrl)}&mode=ar_preferred&title=${encodeURIComponent('Model')}`;
+      // ADD: disable_occlusion=true
+      const sceneViewerHttp =
+        `https://arvr.google.com/scene-viewer/1.0?file=${encodeURIComponent(glbUrl)}` +
+        `&mode=ar_preferred&disable_occlusion=true&title=${encodeURIComponent('Model')}`;
 
       // Android intent deep link (recommended)
+      // ADD: disable_occlusion=true
       const intentUrl =
-        `intent://arvr.google.com/scene-viewer/1.0?file=${encodeURIComponent(glbUrl)}&mode=ar_preferred&title=${encodeURIComponent('Model')}` +
+        `intent://arvr.google.com/scene-viewer/1.0?file=${encodeURIComponent(glbUrl)}` +
+        `&mode=ar_preferred&disable_occlusion=true&title=${encodeURIComponent('Model')}` +
         `#Intent;scheme=https;package=com.google.ar.core;action=android.intent.action.VIEW;` +
         `S.browser_fallback_url=${encodeURIComponent(sceneViewerHttp)};end;`;
 
@@ -89,7 +95,7 @@
 
       const isAndroid = /Android/i.test(navigator.userAgent);
 
-      aAndroid.href = isAndroid ? intentUrl : sceneViewerHttp; // works on Android, decent fallback elsewhere
+      aAndroid.href = isAndroid ? intentUrl : sceneViewerHttp; // Android → intent; others → HTTP fallback
       aIos.href = usdzUrl; // Quick Look needs a direct HTTPS link to the .usdz
     })();
   </script>
