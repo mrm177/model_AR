@@ -8,7 +8,6 @@
     html,body{margin:0;height:100%}
     body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell}
 
-    /* Notice bar at the very top */
     .notice{
       position:sticky; top:0; z-index:999;
       padding:10px 16px; text-align:center;
@@ -25,12 +24,9 @@
       position:absolute; top:8px; bottom:auto; left:50%;
       transform:translateX(-50%); width:60%;
     }
-    model-viewer::part(ar-button){
-      position:absolute; right:16px; bottom:16px;
-      padding:10px 14px; border-radius:12px; background:#fff; border:1px solid #ddd;
-      font:600 14px/1 system-ui;
-      box-shadow:0 2px 12px rgba(0,0,0,.12);
-    }
+    /* Hide the built-in AR button so users don't launch Scene Viewer without our params */
+    model-viewer::part(ar-button){ display:none; }
+
     .links{
       display:flex; gap:16px; padding:12px 16px; flex-wrap:wrap;
     }
@@ -42,12 +38,10 @@
   </style>
 </head>
 <body>
-  <!-- Top notice -->
   <div class="notice">
-    Note: This page work properly only on <strong>mobile devices</strong> using <strong>Chrome (Android)</strong> or <strong>Safari (iOS)</strong>.
+    Note: This page works properly only on <strong>mobile devices</strong> using <strong>Chrome (Android)</strong> or <strong>Safari (iOS)</strong>.
   </div>
 
-  <!-- Hard AR links -->
   <div class="links">
     <a id="ar-android" href="#">Open on Android</a>
     <a id="ar-ios" rel="ar" href="#">Open on iOS</a>
@@ -57,46 +51,41 @@
     id="mv"
     src="model.glb"
     ios-src="model.usdz"
-    ar
-    <!-- Prefer WebXR first; Scene Viewer second; Quick Look last -->
-    ar-modes="webxr scene-viewer quick-look"
     camera-controls
-    shadow-intensity="1">
+    shadow-intensity="1"
+    <!-- Force WebXR (no Scene Viewer) if the user taps any custom AR you might add later -->
+    ar
+    ar-modes="webxr quick-look">
   </model-viewer>
 
   <script>
     (function () {
-      // Build absolute URLs so Scene Viewer / Quick Look can fetch the model
       const glbUrl  = new URL('model.glb',  location.href).toString();
       const usdzUrl = new URL('model.usdz', location.href).toString();
 
-      // Update model-viewer to use absolute URLs as well (helps on iOS)
       const mv = document.getElementById('mv');
       mv.src = glbUrl;
       mv.setAttribute('ios-src', usdzUrl);
 
-      // Scene Viewer HTTP URL (fallback if intent isn’t supported)
-      // ADD: disable_occlusion=true
+      // Fallback HTTP URL (rarely used, but keep it consistent)
       const sceneViewerHttp =
         `https://arvr.google.com/scene-viewer/1.0?file=${encodeURIComponent(glbUrl)}` +
         `&mode=ar_preferred&disable_occlusion=true&title=${encodeURIComponent('Model')}`;
 
-      // Android intent deep link (recommended)
-      // ADD: disable_occlusion=true
+      // Explicit intent to ARCore package WITH occlusion disabled
+      // (documented by Google: disable_occlusion=true)
       const intentUrl =
         `intent://arvr.google.com/scene-viewer/1.0?file=${encodeURIComponent(glbUrl)}` +
-        `&mode=ar_preferred&disable_occlusion=true&title=${encodeURIComponent('Model')}` +
+        `&mode=ar_only&disable_occlusion=true&title=${encodeURIComponent('Model')}` +
         `#Intent;scheme=https;package=com.google.ar.core;action=android.intent.action.VIEW;` +
         `S.browser_fallback_url=${encodeURIComponent(sceneViewerHttp)};end;`;
 
-      // Wire up buttons
       const aAndroid = document.getElementById('ar-android');
       const aIos     = document.getElementById('ar-ios');
-
       const isAndroid = /Android/i.test(navigator.userAgent);
 
-      aAndroid.href = isAndroid ? intentUrl : sceneViewerHttp; // Android → intent; others → HTTP fallback
-      aIos.href = usdzUrl; // Quick Look needs a direct HTTPS link to the .usdz
+      aAndroid.href = isAndroid ? intentUrl : sceneViewerHttp;
+      aIos.href = usdzUrl;
     })();
   </script>
 </body>
