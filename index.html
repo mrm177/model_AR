@@ -24,7 +24,7 @@
       position:absolute; top:8px; bottom:auto; left:50%;
       transform:translateX(-50%); width:60%;
     }
-    /* Hide the built-in AR button so users don't launch Scene Viewer without our params */
+    /* Hide built-in AR button so users use the custom link with disable_occlusion */
     model-viewer::part(ar-button){ display:none; }
 
     .links{
@@ -47,15 +47,15 @@
     <a id="ar-ios" rel="ar" href="#">Open on iOS</a>
   </div>
 
+  <!-- Prefer WebXR; keep Quick Look for iOS -->
   <model-viewer
     id="mv"
     src="model.glb"
     ios-src="model.usdz"
-    camera-controls
-    shadow-intensity="1"
-    <!-- Force WebXR (no Scene Viewer) if the user taps any custom AR you might add later -->
     ar
-    ar-modes="webxr quick-look">
+    ar-modes="webxr quick-look"
+    camera-controls
+    shadow-intensity="1">
   </model-viewer>
 
   <script>
@@ -67,13 +67,11 @@
       mv.src = glbUrl;
       mv.setAttribute('ios-src', usdzUrl);
 
-      // Fallback HTTP URL (rarely used, but keep it consistent)
+      // Scene Viewer (with occlusion disabled) for the Android button
       const sceneViewerHttp =
         `https://arvr.google.com/scene-viewer/1.0?file=${encodeURIComponent(glbUrl)}` +
         `&mode=ar_preferred&disable_occlusion=true&title=${encodeURIComponent('Model')}`;
 
-      // Explicit intent to ARCore package WITH occlusion disabled
-      // (documented by Google: disable_occlusion=true)
       const intentUrl =
         `intent://arvr.google.com/scene-viewer/1.0?file=${encodeURIComponent(glbUrl)}` +
         `&mode=ar_only&disable_occlusion=true&title=${encodeURIComponent('Model')}` +
